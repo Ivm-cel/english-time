@@ -64,11 +64,15 @@ ul.cards{list-style:none;margin:0;padding:0}
 </head>
 <body>
 <main class="band">
-  <h1>English time</h1>
-  <p class="sub">Écoute, répète à voix haute, puis vérifie. Voix américaine.</p>
+  <h1 id="ttl">English time</h1>
+  <p class="sub">Écoute, répète à voix haute, puis vérifie.</p>
 
   <div class="bar">
     <label for="sess" class="count">Séance</label>
+    <div class="seg" role="group" aria-label="Langue">
+      <button id="lgEn" aria-pressed="true">Anglais</button>
+      <button id="lgIt" aria-pressed="false">Italien</button>
+    </div>
     <select id="sess"></select>
     <div class="seg" role="group" aria-label="Vitesse">
       <button id="spN" aria-pressed="true">Normal</button>
@@ -155,7 +159,7 @@ const SESSIONS=[{
 
 const $=id=>document.getElementById(id);
 const synth=window.speechSynthesis;
-let voices=[],rate=1,mode="read",tab="phr",cur=SESSIONS[SESSIONS.length-1],queue=null,known={};
+let voices=[],rate=1,mode="read",tab="phr",lang="en",cur=SESSIONS[SESSIONS.length-1],queue=null,known={};
 try{known=JSON.parse(localStorage.getItem("et-known")||"{}")}catch(e){}
 const save=()=>{try{localStorage.setItem("et-known",JSON.stringify(known))}catch(e){}};
 const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -163,15 +167,18 @@ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 const micIcon='<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor"/><path d="M6 11a6 6 0 0 0 12 0M12 17v4" stroke="currentColor" stroke-width="2" fill="none"/></svg>';
 const icon='<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z" fill="currentColor"/></svg>';
 
-$("sess").innerHTML=SESSIONS.map(s=>`<option value="${s.id}">${esc(s.title)}</option>`).join("");
-$("sess").value=cur.id;
+const LANGS={en:{bcp:"en-US",re:/^en[-_]/i,title:"English time"},it:{bcp:"it-IT",re:/^it[-_]/i,title:"Tempo italiano"}};
+const sessOf=l=>SESSIONS.filter(x=>(x.lang||"en")===l);
+function fillSess(){const list=sessOf(lang);$("sess").innerHTML=list.length?list.map(x=>`<option value="${x.id}">${esc(x.title)}</option>`).join(""):'<option value="">Aucune séance pour l\'instant</option>';cur=list[list.length-1]||{id:"",phrases:[],vocab:[],errors:[],pairs:[]};$("sess").value=cur.id;$("ttl").textContent=LANGS[lang].title}
+try{const l=localStorage.getItem("et-lang");if(l&&LANGS[l])lang=l}catch(e){}
+fillSess();
 
 const NOVELTY=/^(Albert|Bad News|Bahh|Bells|Boing|Bubbles|Cellos|Deranged|Good News|Hysterical|Jester|Junior|Kathy|Organ|Pipe Organ|Princess|Ralph|Superstar|Trinoids|Whisper|Wobble|Zarvox|Fred|Agnes|Bruce|Vicki|Victoria)\b/i;
 const GOOD=/(Ava|Zoe|Evan|Nathan|Joelle|Noelle|Samantha|Allison|Susan|Tom|Google US English|Aria|Jenny|Guy)/i;
 function rank(v){let r=0;if(/en[-_]US/i.test(v.lang))r+=100;if(/premium/i.test(v.name))r+=50;if(/enhanced|natural|online/i.test(v.name))r+=30;if(GOOD.test(v.name))r+=20;if(v.localService===false)r+=5;return r}
 function loadVoices(){
   if(!synth)return;
-  voices=synth.getVoices().filter(v=>/^en[-_]/i.test(v.lang)&&!NOVELTY.test(v.name)&&!/(eloquence|grandma|grandpa|rocko|shelley|flo|reed|sandy|eddy)/i.test(v.name));
+  voices=synth.getVoices().filter(v=>LANGS[lang].re.test(v.lang)&&!NOVELTY.test(v.name)&&!/(eloquence|grandma|grandpa|rocko|shelley|flo|reed|sandy|eddy)/i.test(v.name));
   voices.sort((a,b)=>rank(b)-rank(a));
   const prev=$("voice").value;
   $("voice").innerHTML=`<optgroup label="Voix ElevenLabs">${EL.map(n=>`<option value="el:${n}">${n}</option>`).join("")}</optgroup>`+(voices.length?`<optgroup label="Voix de l'appareil">${voices.map((v,i)=>`<option value="sys:${i}">${esc(v.name)} (${v.lang})</option>`).join("")}</optgroup>`:"");
@@ -189,7 +196,7 @@ function sysSpeak(text,done,idx){
   if(!synth){if(done)done();return}
   const u=new SpeechSynthesisUtterance(text);
   const v=voices[idx||0];
-  if(v){u.voice=v;u.lang=v.lang}else u.lang="en-US";
+  if(v){u.voice=v;u.lang=v.lang}else u.lang=LANGS[lang].bcp;
   u.rate=rate;if(done)u.onend=done;synth.speak(u);
 }
 function speak(text,done){
@@ -266,7 +273,7 @@ async function listen(i,btn){
   await warmMic();
   stopAll();
   const target=items()[i].en.split(" / ")[0];
-  const rec=new SR();rec.lang="en-US";rec.interimResults=false;rec.maxAlternatives=3;
+  const rec=new SR();rec.lang=LANGS[lang].bcp;rec.interimResults=false;rec.maxAlternatives=3;
   btn.classList.add("on");out.textContent="Je t'écoute…";
   rec.onresult=e=>{
     let best=null;
@@ -297,6 +304,9 @@ $("voice").onchange=()=>{try{localStorage.setItem("et-voice2",$("voice").value)}
 $("spN").onclick=()=>{rate=1;setPressed(["spN","spS"],"spN")};
 $("spS").onclick=()=>{rate=.7;setPressed(["spN","spS"],"spS")};
 $("sess").onchange=e=>{cur=SESSIONS.find(s=>s.id===e.target.value)||cur;stopAll();render()};
+function setLang(l){lang=l;try{localStorage.setItem("et-lang",l)}catch(e){}setPressed(["lgEn","lgIt"],l==="en"?"lgEn":"lgIt");stopAll();fillSess();loadVoices();render()}
+$("lgEn").onclick=()=>setLang("en");$("lgIt").onclick=()=>setLang("it");
+setPressed(["lgEn","lgIt"],lang==="en"?"lgEn":"lgIt");
 ["phr","voc","err","art","pro"].forEach(x=>$("t-"+x).onclick=()=>setTab(x));
 $("mRead").onclick=()=>setMode("read","mRead");
 $("mEar").onclick=()=>setMode("ear","mEar");
