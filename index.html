@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>English time – entraînement</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE: calme, studieux, comme un carnet de vocabulaire bien tenu.
+   IDEA: un jeu de fiches de révision qu'on fait défiler et qu'on écoute.
+   PICTURE: la liste de fiches elle-même, avec un gros bouton d'écoute par ligne.
+   COLOUR and TYPE: blanc, encre, sarcelle profonde #0b5d63 ; Libre Caslon + Inter.
+   LAYOUT: titre sobre, barre de réglages, onglets, puis la liste en une colonne. */
+:root{color-scheme:light dark;--bg:light-dark(#ffffff,#0d1416);--ink:light-dark(#14161a,#e8eeee);--mute:light-dark(#5b6168,#9aa7a9);--line:light-dark(#e3e6e8,#22302f);--acc:light-dark(#0b5d63,#5cc3c9);--soft:light-dark(#eef5f5,#13252a);--ok:light-dark(#2e7d4f,#6fd19a)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Inter,system-ui,sans-serif;overflow-x:clip}
+.band{padding:clamp(24px,4vw,56px) max(5vw,16px);max-width:900px;margin:0 auto}
+h1{font:400 clamp(32px,6vw,48px)/1.05 "Libre Caslon Text",Georgia,serif;margin:0 0 6px;text-wrap:balance}
+.sub{color:var(--mute);margin:0 0 20px}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 0;border-block:1px solid var(--line)}
+select,button{font:inherit;font-size:16px;color:inherit}
+select{min-height:44px;padding:0 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);max-width:100%}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{min-height:44px;padding:0 14px;border:0;background:transparent;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--acc);color:var(--bg)}
+.tabs{display:flex;gap:4px;margin:22px 0 4px;flex-wrap:wrap}
+.tabs button{min-height:44px;padding:0 16px;border:0;border-bottom:2px solid transparent;background:none;cursor:pointer;color:var(--mute);font-weight:500}
+.tabs button[aria-selected=true]{color:var(--ink);border-color:var(--acc)}
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0}
+.btn{min-height:44px;padding:0 16px;border-radius:8px;border:1px solid var(--acc);background:var(--acc);color:var(--bg);cursor:pointer;font-weight:500}
+.btn.ghost{background:transparent;color:var(--acc)}
+.count{color:var(--mute);font-size:14px}
+ul.cards{list-style:none;margin:0;padding:0}
+.card{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)}
+.card.now{background:var(--soft)}
+.btns{display:flex;flex-direction:column;gap:8px}
+.mic[hidden]{display:none}
+.res{font-size:14px;margin-top:6px}
+.res .sc{font-weight:600;color:var(--acc)}
+.res .miss{color:#c0392b;text-decoration:underline wavy;text-underline-offset:3px}
+.play{width:48px;height:48px;border-radius:50%;border:1px solid var(--acc);background:transparent;color:var(--acc);cursor:pointer;display:grid;place-items:center}
+.mic.on{background:var(--acc);color:var(--bg)}
+.play:focus-visible,.btn:focus-visible,.seg button:focus-visible,.tabs button:focus-visible,.know:focus-visible,.reveal:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.en{font:400 19px/1.35 "Libre Caslon Text",Georgia,serif}
+.fr{color:var(--mute);font-size:15px}
+.bad{color:var(--mute);font-size:14px;text-decoration:line-through}
+.why{font-size:14px;color:var(--acc)}
+.hidden{filter:blur(6px);user-select:none}
+.reveal{border:0;background:none;color:var(--acc);cursor:pointer;font-size:14px;padding:4px 0;min-height:32px}
+.know{min-width:44px;min-height:44px;border:1px solid var(--line);border-radius:8px;background:transparent;cursor:pointer;color:var(--mute);font-size:13px;padding:0 8px}
+.know[aria-pressed=true]{border-color:var(--ok);color:var(--ok)}
+.card.done .en{opacity:.55}
+.pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:10px}
+.pair button{min-height:64px;border:1px solid var(--line);border-radius:10px;background:transparent;cursor:pointer;text-align:left;padding:10px 14px}
+.pair b{font:400 22px "Libre Caslon Text",Georgia,serif;display:block}
+.pair span{color:var(--mute);font-size:14px}
+.note{margin-top:28px;padding:14px 16px;background:var(--soft);border-radius:10px;font-size:15px}
+.warn{color:var(--mute);font-size:14px}
+@media(prefers-reduced-motion:no-preference){.card{transition:background .3s}}
+@media(max-width:600px){.card{grid-template-columns:auto minmax(0,1fr)}.know{grid-column:2;justify-self:start}}
+</style>
+</head>
+<body>
+<main class="band">
+  <h1>English time</h1>
+  <p class="sub">Écoute, répète à voix haute, puis vérifie. Voix américaine.</p>
+
+  <div class="bar">
+    <label for="sess" class="count">Séance</label>
+    <select id="sess"></select>
+    <div class="seg" role="group" aria-label="Vitesse">
+      <button id="spN" aria-pressed="true">Normal</button>
+      <button id="spS" aria-pressed="false">Lent</button>
+    </div>
+    <select id="voice" aria-label="Voix"></select>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" id="t-phr" aria-selected="true">Phrases</button>
+    <button role="tab" id="t-voc" aria-selected="false">Vocabulaire</button>
+    <button role="tab" id="t-err" aria-selected="false">Mes erreurs</button>
+    <button role="tab" id="t-pro" aria-selected="false">Prononciation</button>
+  </div>
+
+  <div class="tools" id="tools">
+    <div class="seg" role="group" aria-label="Mode">
+      <button id="mRead" aria-pressed="true">Lire</button>
+      <button id="mEar" aria-pressed="false">Écoute</button>
+      <button id="mSay" aria-pressed="false">Traduis</button>
+    </div>
+    <button class="btn" id="all">Tout écouter</button>
+    <button class="btn ghost" id="stop">Stop</button>
+    <span class="count" id="count"></span>
+  </div>
+  <p class="warn" id="modeHelp"></p>
+
+  <ul class="cards" id="list"></ul>
+  <div id="pro" hidden></div>
+
+  <p class="note" id="micNote">Bouton micro : dis la phrase, la page affiche ce qu'elle a compris et souligne en rouge les mots mal reconnus. Le micro marche quand la page est ouverte sur ton Mac (Chrome ou Safari), pas dans l'app Claude.</p>
+  <p class="warn">Voix ElevenLabs : Sarah et Brian lisent tout ; Jessica et Adam lisent les phrases (sinon Sarah prend le relais). En mode Lent, l'audio est ralenti sans changer la voix.</p>
+  <p class="warn" id="noVoice" hidden>Aucune voix anglaise trouvée sur cet appareil.</p>
+</main>
+<script>
+{
+const SESSIONS=[{
+ id:"2026-11-20",title:"20.11.2026 – NVIDIA et Jensen Huang",
+ phrases:[
+ ["I'm an investor in NVIDIA.","J'ai investi dans NVIDIA."],
+ ["I'm very interested in what will happen over the next few years.","Ce qui va se passer ces prochaines années m'intéresse beaucoup."],
+ ["How about NVIDIA? Maybe we could talk about NVIDIA?","Et si on parlait de NVIDIA ?"],
+ ["I'm not sure how I feel about it.","Je ne sais pas trop quoi en penser."],
+ ["I sold some shares a few months ago, when the stock was at its peak.","J'ai vendu des actions il y a quelques mois, quand le cours était au plus haut."],
+ ["Now I've bought some because the price is low.","Maintenant j'en ai racheté parce que le prix est bas."],
+ ["I don't know if NVIDIA can grow without Jensen Huang.","Je ne sais pas si NVIDIA peut grandir sans Jensen Huang."],
+ ["Trust is hard to rebuild.","La confiance est difficile à reconstruire."],
+ ["We don't feel emotionally attached to NVIDIA.","On n'a pas d'attachement affectif pour NVIDIA."],
+ ["I can't trust him to be serious about cybersecurity.","Je ne peux pas compter sur lui pour prendre la cybersécurité au sérieux."],
+ ["I don't know if someone other than him will change that.","Je ne sais pas si quelqu'un d'autre que lui changera ça."],
+ ["They're among the best.","Ils sont parmi les meilleurs."],
+ ["Could you explain that to me?","Tu peux m'expliquer ?"],
+ ["Nobody knows the real price.","Personne ne connaît le vrai prix."],
+ ["Maybe it'll double, maybe it'll drop by half.","Peut-être que ça doublera, peut-être que ça baissera de moitié."],
+ ["Were you fooled by a spy, or did you do it on purpose?","Vous êtes-vous fait avoir par une espionne, ou l'avez-vous fait exprès ?"],
+ ["He won't reply to me.","Il ne me répondra pas."]],
+ vocab:[
+ ["an investor","un investisseur, une investisseuse"],["shares, stock","des actions"],["the stock price, the share price","le cours de l'action"],["at its peak","au plus haut"],["a bear market","un marché baissier"],["a bubble","une bulle"],["quarterly results, earnings","les résultats trimestriels"],["demand","la demande"],["circular financing","le financement circulaire"],["to inflate sales","gonfler les ventes"],["competitors, competition","les concurrents, la concurrence"],["chips","des puces"],["a graphics card","une carte graphique"],["a data center","un centre de données"],["gamers","les joueurs (jeux vidéo)"],["consumers","les consommateurs"],["to resign","démissionner"],["effective immediately","avec effet immédiat"],["an interim CEO","un PDG par intérim"],["the board (of directors)","le conseil d'administration"],["the chair of the board","le président du conseil"],["an investigation","une enquête"],["to testify before Congress","témoigner devant le Congrès"],["a spy","un espion"],["a honeypot","un piège amoureux (espionnage)"],["an affair, infidelity","une liaison, l'infidélité"],["the fallout","les retombées"],["trust","la confiance"],["uncertain","incertain"],["emotionally attached","attaché affectivement"],["to be fooled by, to be tricked by","se faire avoir par"],["on purpose, deliberately","exprès"],["among","parmi"],["in the long term","à long terme"],["valuable","qui a de la valeur"]],
+ errors:[
+ ["investitor","investor","Calque de « investisseur »"],
+ ["I'm interested what will happen","I'm interested in what will happen","Toujours interested in"],
+ ["for the next few years","over the next few years","Durée à venir"],
+ ["NVIDIA action","NVIDIA shares","Faux ami : action = acte"],
+ ["I sell… they was","I sold… it was","Passé et accord"],
+ ["possible to NVIDIA to grow up","possible for NVIDIA to grow","grow up = grandir (enfant)"],
+ ["a charismatic people","a charismatic person","people est pluriel"],
+ ["a product every people have","a product everyone has","everyone + singulier"],
+ ["a very affect with NVIDIA","emotionally attached to NVIDIA","affect ne marche pas ici"],
+ ["trust to him to are serious with","trust him to be serious about","trust someone to do"],
+ ["another people than him","someone other than him","Tournure figée"],
+ ["Apple is two","Apple too","two = 2, too = aussi"],
+ ["the best engineer","the best engineers","Pluriel"],
+ ["explain me","explain to me","explain something to someone"],
+ ["when they are high","when they were high","Concordance des temps"],
+ ["maybe the double, maybe the middle","maybe double, maybe half","middle = le milieu"],
+ ["sell some sheep","sell some chips","sheep = mouton (i long)"],
+ ["they don't will be reply","he won't reply","won't + verbe"],
+ ["Jensen Wang","Jensen Huang","Nom propre"]],
+ pairs:[["sheep","un mouton"],["chip","une puce"],["ship","un bateau"],["cheap","bon marché"],["two","deux"],["too","aussi"]]
+}];
+
+const $=id=>document.getElementById(id);
+const synth=window.speechSynthesis;
+let voices=[],rate=1,mode="read",tab="phr",cur=SESSIONS[SESSIONS.length-1],queue=null,known={};
+try{known=JSON.parse(localStorage.getItem("et-known")||"{}")}catch(e){}
+const save=()=>{try{localStorage.setItem("et-known",JSON.stringify(known))}catch(e){}};
+const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+const micIcon='<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor"/><path d="M6 11a6 6 0 0 0 12 0M12 17v4" stroke="currentColor" stroke-width="2" fill="none"/></svg>';
+const icon='<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z" fill="currentColor"/></svg>';
+
+$("sess").innerHTML=SESSIONS.map(s=>`<option value="${s.id}">${esc(s.title)}</option>`).join("");
+$("sess").value=cur.id;
+
+const NOVELTY=/^(Albert|Bad News|Bahh|Bells|Boing|Bubbles|Cellos|Deranged|Good News|Hysterical|Jester|Junior|Kathy|Organ|Pipe Organ|Princess|Ralph|Superstar|Trinoids|Whisper|Wobble|Zarvox|Fred|Agnes|Bruce|Vicki|Victoria)\b/i;
+const GOOD=/(Ava|Zoe|Evan|Nathan|Joelle|Noelle|Samantha|Allison|Susan|Tom|Google US English|Aria|Jenny|Guy)/i;
+function rank(v){let r=0;if(/en[-_]US/i.test(v.lang))r+=100;if(/premium/i.test(v.name))r+=50;if(/enhanced|natural|online/i.test(v.name))r+=30;if(GOOD.test(v.name))r+=20;if(v.localService===false)r+=5;return r}
+function loadVoices(){
+  if(!synth)return;
+  voices=synth.getVoices().filter(v=>/^en[-_]/i.test(v.lang)&&!NOVELTY.test(v.name)&&!/(eloquence|grandma|grandpa|rocko|shelley|flo|reed|sandy|eddy)/i.test(v.name));
+  voices.sort((a,b)=>rank(b)-rank(a));
+  const prev=$("voice").value;
+  $("voice").innerHTML=`<optgroup label="Voix ElevenLabs">${EL.map(n=>`<option value="el:${n}">${n}</option>`).join("")}</optgroup>`+(voices.length?`<optgroup label="Voix de l'appareil">${voices.map((v,i)=>`<option value="sys:${i}">${esc(v.name)} (${v.lang})</option>`).join("")}</optgroup>`:"");
+  let saved=null;try{saved=localStorage.getItem("et-voice2")}catch(e){}
+  $("voice").value=prev||saved||"el:Sarah";if(!$("voice").value)$("voice").value="el:Sarah";
+  
+}
+
+
+const AUDIO={"Sarah": ["73bba5f3", "907a28be", "9ee17676", "43c41a4f", "7e209383", "0e9a954b", "87448f7a", "17364da0", "90b8a94a", "f91bea49", "6905913c", "e6498d48", "03b1e5b5", "d37e5ffa", "19812483", "14d6a265", "23ff5422", "7b6e1de4", "c98c2a97", "d67deee4", "5f965ea1", "30306134", "da8c16fa", "06e391b9", "42d57922", "2f1d0a59", "2d94fc4b", "1314898f", "0a8da0c4", "8e168ca5", "301c3e9f", "5252b44a", "6beaf628", "1b946d7a", "515a0f0c", "69550163", "c878cc2d", "b27af327", "d23f0d4a", "050b2d35", "0a402d9e", "ff12a77a", "f1bf223c", "2f4ccd55", "0add96b1", "f7224558", "22cac7ac", "5a3e0624", "894a4822", "0a2088ef", "51062dbf", "3ebfcb61", "297a9b6b", "85eda550", "516e37fd", "de7f0606", "3c0404a6", "136fe948", "31668ce1", "856629ec", "6f526b8a", "b89f0028", "789bee2e", "06f71319", "aee107d6", "7a3b8fb1", "b88b3fda", "d39f867f", "acc64da6", "f118feff", "3d0e3509", "0baf386e", "7c70e5d7", "7c79abc7", "0a8daffa", "0b876029", "0b876331"], "Brian": ["73bba5f3", "907a28be", "9ee17676", "43c41a4f", "7e209383", "0e9a954b", "87448f7a", "17364da0", "90b8a94a", "f91bea49", "6905913c", "e6498d48", "03b1e5b5", "d37e5ffa", "19812483", "14d6a265", "23ff5422", "7b6e1de4", "c98c2a97", "d67deee4", "5f965ea1", "30306134", "da8c16fa", "06e391b9", "42d57922", "2f1d0a59", "2d94fc4b", "1314898f", "0a8da0c4", "8e168ca5", "301c3e9f", "5252b44a", "6beaf628", "1b946d7a", "515a0f0c", "69550163", "c878cc2d", "b27af327", "d23f0d4a", "050b2d35", "0a402d9e", "ff12a77a", "f1bf223c", "2f4ccd55", "0add96b1", "f7224558", "22cac7ac", "5a3e0624", "894a4822", "0a2088ef", "51062dbf", "3ebfcb61", "297a9b6b", "85eda550", "516e37fd", "de7f0606", "3c0404a6", "136fe948", "31668ce1", "856629ec", "6f526b8a", "b89f0028", "789bee2e", "06f71319", "aee107d6", "7a3b8fb1", "b88b3fda", "d39f867f", "acc64da6", "f118feff", "3d0e3509", "0baf386e", "7c70e5d7", "7c79abc7", "0a8daffa", "0b876029", "0b876331"], "Jessica": ["73bba5f3", "907a28be", "9ee17676", "43c41a4f", "7e209383", "0e9a954b", "87448f7a", "17364da0", "90b8a94a", "f91bea49", "6905913c", "e6498d48", "03b1e5b5", "d37e5ffa", "19812483", "14d6a265", "23ff5422"], "Adam": ["73bba5f3", "907a28be", "9ee17676", "43c41a4f", "7e209383", "0e9a954b", "87448f7a", "17364da0", "90b8a94a", "f91bea49", "6905913c", "e6498d48", "03b1e5b5", "d37e5ffa", "19812483", "14d6a265", "23ff5422"]};
+const EL=["Sarah","Brian","Jessica","Adam"];
+const hk=t=>{let x=5381;for(const ch of t){x=(Math.imul(x,33)^ch.charCodeAt(0))>>>0}return x.toString(16).padStart(8,"0")};
+let curAudio=null;
+function sysSpeak(text,done,idx){
+  if(!synth){if(done)done();return}
+  const u=new SpeechSynthesisUtterance(text);
+  const v=voices[idx||0];
+  if(v){u.voice=v;u.lang=v.lang}else u.lang="en-US";
+  u.rate=rate;if(done)u.onend=done;synth.speak(u);
+}
+function speak(text,done){
+  const val=$("voice").value||"el:Sarah";
+  if(val.startsWith("el:")){
+    const k=hk(text);let name=val.slice(3);
+    if(!(AUDIO[name]||[]).includes(k))name=["Sarah","Brian"].find(n=>(AUDIO[n]||[]).includes(k));
+    if(name){
+      const a=new Audio(`audio/${name}/${k}.mp3`);curAudio=a;
+      a.preservesPitch=true;a.playbackRate=rate;
+      a.onended=()=>{curAudio=null;if(done)done()};
+      a.play().catch(()=>sysSpeak(text,done,0));
+      return;
+    }
+    return sysSpeak(text,done,0);
+  }
+  sysSpeak(text,done,+val.slice(4));
+}
+
+function items(){
+  if(tab==="phr")return cur.phrases.map(p=>({en:p[0],fr:p[1]}));
+  if(tab==="voc")return cur.vocab.map(p=>({en:p[0],fr:p[1]}));
+  if(tab==="err")return cur.errors.map(p=>({en:p[1],bad:p[0],fr:p[2]}));
+  return [];
+}
+
+function render(){
+  const pro=tab==="pro";
+  $("pro").hidden=!pro;$("list").hidden=pro;$("tools").hidden=pro;$("modeHelp").hidden=pro;
+  if(pro){
+    $("pro").innerHTML=`<p>Les paires qui se ressemblent. Écoute la différence : i long (sheep, cheap) contre i court (chip, ship).</p><div class="pair">${cur.pairs.map((p,i)=>`<button data-p="${i}"><b>${esc(p[0])}</b><span>${esc(p[1])}</span></button>`).join("")}</div>`;
+    return;
+  }
+  const list=items();
+  const hideEn=mode==="say",hideFr=mode==="ear";
+  $("modeHelp").textContent={read:"Tout est visible. Clique sur lecture, répète, puis passe à la suivante.",ear:"Écoute sans voir le texte. Essaie de comprendre, puis affiche.",say:"Lis le français, dis la phrase en anglais à voix haute, puis écoute la correction."}[mode];
+  $("list").innerHTML=list.map((it,i)=>{
+    const k=cur.id+tab+i,done=!!known[k];
+    return `<li class="card${done?" done":""}" id="c${i}">
+      <div class="btns"><button class="play" data-i="${i}" aria-label="Écouter">${icon}</button><button class="play mic" data-m="${i}" aria-label="Répéter au micro"${SR?"":" hidden"}>${micIcon}</button></div>
+      <div>
+        ${it.bad?`<div class="bad">${esc(it.bad)}</div>`:""}
+        <div class="en${mode==="ear"||hideEn?" hidden":""}" data-h="${i}">${esc(it.en)}</div>
+        <div class="${it.bad?"why":"fr"}${hideFr?" hidden":""}" data-h="${i}">${esc(it.fr)}</div>
+        ${mode!=="read"?`<button class="reveal" data-r="${i}">Afficher</button>`:""}
+        <div class="res" id="h${i}" aria-live="polite"></div>
+      </div>
+      <button class="know" data-k="${k}" aria-pressed="${done}">${done?"Acquis":"À revoir"}</button>
+    </li>`}).join("");
+  const n=list.filter((_,i)=>known[cur.id+tab+i]).length;
+  $("count").textContent=`${n} / ${list.length} acquis`;
+}
+
+const CT={"i'm":"i am","it'll":"it will","i'll":"i will","don't":"do not","won't":"will not","can't":"can not","cannot":"can not","they're":"they are","i've":"i have","we're":"we are","you're":"you are","it's":"it is","he's":"he is","didn't":"did not","doesn't":"does not","isn't":"is not","what's":"what is","that's":"that is","let's":"let us","couldn't":"could not"};
+function toks(t){const out=[];t.replace(/’/g,"'").split(/\s+/).forEach((raw,oi)=>{const w=raw.toLowerCase().replace(/[^a-z0-9']/g,"");if(!w)return;(CT[w]||w).split(" ").forEach(p=>out.push({p,oi}))});return out}
+function compare(target,heard){
+  const a=toks(target),b=toks(heard),n=a.length,m=b.length;
+  const d=Array.from({length:n+1},()=>new Array(m+1).fill(0));
+  for(let i=n-1;i>=0;i--)for(let j=m-1;j>=0;j--)d[i][j]=a[i].p===b[j].p?d[i+1][j+1]+1:Math.max(d[i+1][j],d[i][j+1]);
+  const ok=new Set();let i=0,j=0;
+  while(i<n&&j<m){if(a[i].p===b[j].p){ok.add(i);i++;j++}else if(d[i+1][j]>=d[i][j+1])i++;else j++}
+  const missRaw=new Set(a.filter((t,k)=>!ok.has(k)).map(t=>t.oi));
+  return {score:n?Math.round(ok.size/n*100):0,missRaw};
+}
+let micStream=null;
+async function warmMic(){
+  if(micStream||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)return;
+  try{micStream=await navigator.mediaDevices.getUserMedia({audio:true})}catch(e){}
+}
+async function listen(i,btn){
+  const out=$("h"+i);if(!SR||!out)return;
+  await warmMic();
+  stopAll();
+  const target=items()[i].en.split(" / ")[0];
+  const rec=new SR();rec.lang="en-US";rec.interimResults=false;rec.maxAlternatives=3;
+  btn.classList.add("on");out.textContent="Je t'écoute…";
+  rec.onresult=e=>{
+    let best=null;
+    for(const alt of e.results[0]){const c=compare(target,alt.transcript);if(!best||c.score>best.score)best={...c,heard:alt.transcript}}
+    const words=target.split(/\s+/).map((w,k)=>best.missRaw.has(k)?`<span class="miss">${esc(w)}</span>`:esc(w)).join(" ");
+    out.innerHTML=`<span class="sc">${best.score} %</span> · compris : « ${esc(best.heard)} »<br>${words}`;
+    const c=$("c"+i);if(c){c.querySelectorAll(".hidden").forEach(el=>el.classList.remove("hidden"))}
+  };
+  rec.onerror=e=>{out.textContent=(e.error==="not-allowed"||e.error==="service-not-allowed")?"Micro bloqué ici. Ouvre la page sur ton Mac (Dropbox, dossier English time).":"Je n'ai rien entendu. Réessaie, un peu plus près du micro."};
+  rec.onend=()=>btn.classList.remove("on");
+  try{rec.start()}catch(err){out.textContent="Le micro n'a pas pu démarrer.";btn.classList.remove("on")}
+}
+function setPressed(ids,on){ids.forEach(id=>$(id).setAttribute("aria-pressed",id===on))}
+function setTab(t){tab=t;["phr","voc","err","pro"].forEach(x=>$("t-"+x).setAttribute("aria-selected",x===t));stopAll();render()}
+function setMode(m,id){mode=m;setPressed(["mRead","mEar","mSay"],id);render()}
+function mark(i){document.querySelectorAll(".card.now").forEach(c=>c.classList.remove("now"));const c=$("c"+i);if(c){c.classList.add("now");c.scrollIntoView({block:"nearest",behavior:"smooth"})}}
+function stopAll(){queue=null;if(synth)synth.cancel();if(curAudio){curAudio.pause();curAudio=null}document.querySelectorAll(".card.now").forEach(c=>c.classList.remove("now"))}
+function playAll(){
+  stopAll();const list=items();const token={};queue=token;let i=0;
+  const next=()=>{if(queue!==token||i>=list.length){if(queue===token)stopAll();return}
+    const it=list[i];mark(i);
+    const gap=Math.max(2000,it.en.length*90/rate);
+    speak(it.en,()=>{i++;setTimeout(next,gap)})};
+  next();
+}
+
+$("voice").onchange=()=>{try{localStorage.setItem("et-voice2",$("voice").value)}catch(e){}stopAll();speak(cur.phrases[0][0])};
+$("spN").onclick=()=>{rate=1;setPressed(["spN","spS"],"spN")};
+$("spS").onclick=()=>{rate=.7;setPressed(["spN","spS"],"spS")};
+$("sess").onchange=e=>{cur=SESSIONS.find(s=>s.id===e.target.value)||cur;stopAll();render()};
+["phr","voc","err","pro"].forEach(x=>$("t-"+x).onclick=()=>setTab(x));
+$("mRead").onclick=()=>setMode("read","mRead");
+$("mEar").onclick=()=>setMode("ear","mEar");
+$("mSay").onclick=()=>setMode("say","mSay");
+$("all").onclick=playAll;
+$("stop").onclick=stopAll;
+$("list").onclick=e=>{
+  const mc=e.target.closest(".mic");if(mc){listen(+mc.dataset.m,mc);return}
+  const p=e.target.closest(".play"),r=e.target.closest(".reveal"),k=e.target.closest(".know");
+  if(p){stopAll();const i=+p.dataset.i;mark(i);speak(items()[i].en)}
+  if(r){document.querySelectorAll(`[data-h="${r.dataset.r}"]`).forEach(el=>el.classList.remove("hidden"));r.remove()}
+  if(k){const key=k.dataset.k;known[key]=!known[key];if(!known[key])delete known[key];save();render()}
+};
+$("pro").onclick=e=>{const b=e.target.closest("[data-p]");if(b){stopAll();speak(cur.pairs[+b.dataset.p][0])}};
+loadVoices();if(synth)synth.onvoiceschanged=loadVoices;
+render();
+}
+</script>
+</body>
+</html>
